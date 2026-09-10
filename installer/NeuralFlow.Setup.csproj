@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AssemblyName>NeuralFlowPreviewSetup</AssemblyName><RuntimeIdentifier>win-x64</RuntimeIdentifier><SelfContained>true</SelfContained><PublishSingleFile>true</PublishSingleFile><IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract><EnableCompressionInSingleFile>true</EnableCompressionInSingleFile><Version>0.6.0</Version></PropertyGroup>
  <PropertyGroup><PayloadZipPath Condition="'$(PayloadZipPath)' == ''">../dist/NeuralFlow-Preview.zip</PayloadZipPath></PropertyGroup>
+ <PropertyGroup><ApplicationIcon>../branding/NeuralFlow.ico</ApplicationIcon></PropertyGroup>
+ <ItemGroup><Resource Include="../branding/NeuralFlow.ico" Link="Branding/NeuralFlow.ico" /></ItemGroup>
  <ItemGroup><EmbeddedResource Include="$(PayloadZipPath)" LogicalName="NeuralFlow.Payload.zip" /></ItemGroup>
 </Project>

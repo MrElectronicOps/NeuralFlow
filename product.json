@@ -1,6 +1,6 @@
 {
   "name": "NeuralFlow",
-  "version": "0.6.0-preview.3",
+  "version": "0.6.0-preview.4",
   "descriptor": "Experimental DLSS 5 Screen Lab",
   "installerName": "NeuralFlow Preview",
   "about": "NeuralFlow is an independent experimental project. NVIDIA and DLSS are trademarks of NVIDIA Corporation. NeuralFlow is not endorsed by or affiliated with NVIDIA."

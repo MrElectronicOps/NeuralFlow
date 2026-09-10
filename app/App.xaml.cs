@@ -8,6 +8,10 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        var icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/NeuralFlow;component/Branding/NeuralFlow.ico"));
+        icon.Freeze();
+        EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((sender, _) => { if (sender is Window window) window.Icon = icon; }));
         mutex = new Mutex(true, "Local\\NeuralFlow.Preview", out bool created);
         if (!created) { MessageBox.Show("NeuralFlow is already running. Open its existing window.", "NeuralFlow"); Shutdown(); return; }
         DispatcherUnhandledException += (_, error) => {

@@ -9,8 +9,10 @@
     <RootNamespace>NeuralFlow</RootNamespace>
     <Version>0.6.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>../branding/NeuralFlow.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
   </PropertyGroup>
   <ItemGroup><None Include="../product.json" Link="product.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><Resource Include="../branding/NeuralFlow.ico" Link="Branding/NeuralFlow.ico" /></ItemGroup>
 </Project>

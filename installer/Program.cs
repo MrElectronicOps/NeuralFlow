@@ -39,6 +39,7 @@ class SetupWindow:Window
     bool working;
     public SetupWindow(bool uninstall)
     {
+        Icon=new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/NeuralFlowPreviewSetup;component/Branding/NeuralFlow.ico"));
         Title=uninstall?"Remove NeuralFlow":"NeuralFlow Preview Setup";Width=600;Height=410;ResizeMode=ResizeMode.NoResize;WindowStartupLocation=WindowStartupLocation.CenterScreen;Background=new SolidColorBrush(Color.FromRgb(11,15,23));Foreground=Brushes.White;FontFamily=new FontFamily("Segoe UI");
         var panel=new StackPanel{Margin=new Thickness(32)};Content=panel;
         panel.Children.Add(new TextBlock{Text="NeuralFlow",FontSize=32,FontWeight=FontWeights.SemiBold,Foreground=Brushes.LightCyan});
@@ -64,9 +65,9 @@ class SetupWindow:Window
         string setup=Environment.ProcessPath??throw new IOException("Setup path unavailable.");string uninstall=Path.Combine(basePath,"Uninstall.exe");if(!string.Equals(setup,uninstall,StringComparison.OrdinalIgnoreCase))File.Copy(setup,uninstall,true);
         if(desktop)CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),"NeuralFlow.lnk"),Path.Combine(destination,"NeuralFlow.exe"));
         string programs=Environment.GetFolderPath(Environment.SpecialFolder.Programs);CreateShortcut(Path.Combine(programs,"NeuralFlow.lnk"),Path.Combine(destination,"NeuralFlow.exe"));
-        using var key=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\NeuralFlow");key.SetValue("DisplayName","NeuralFlow Preview");key.SetValue("DisplayVersion",version);key.SetValue("InstallLocation",destination);key.SetValue("UninstallString","\""+uninstall+"\" --uninstall");key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
+        using var key=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\NeuralFlow");key.SetValue("DisplayName","NeuralFlow Preview");key.SetValue("DisplayVersion",version);key.SetValue("DisplayIcon",Path.Combine(destination,"NeuralFlow.exe")+",0");key.SetValue("InstallLocation",destination);key.SetValue("UninstallString","\""+uninstall+"\" --uninstall");key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
     }
-    static void CreateShortcut(string path,string target){Type shell=Type.GetTypeFromProgID("WScript.Shell")!;dynamic obj=Activator.CreateInstance(shell)!;dynamic link=obj.CreateShortcut(path);link.TargetPath=target;link.WorkingDirectory=Path.GetDirectoryName(target);link.Description="NeuralFlow — Experimental DLSS 5 Screen Lab";link.Save();}
+    static void CreateShortcut(string path,string target){Type shell=Type.GetTypeFromProgID("WScript.Shell")!;dynamic obj=Activator.CreateInstance(shell)!;dynamic link=obj.CreateShortcut(path);link.TargetPath=target;link.IconLocation=target+",0";link.WorkingDirectory=Path.GetDirectoryName(target);link.Description="NeuralFlow — Experimental DLSS 5 Screen Lab";link.Save();}
     void Uninstall()
     {
         if(Process.GetProcessesByName("NeuralFlow").Length>0)throw new IOException("Close NeuralFlow before removing it.");
