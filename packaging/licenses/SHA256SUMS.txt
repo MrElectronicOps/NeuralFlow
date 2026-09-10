@@ -1,0 +1,14 @@
+9906940f61b1f0b533fa7d99baf55178b2808fbe113ea51dfbfad8572ccd5f2b  cswinrt-2.2.0-LICENSE.txt
+5c73ec182c994adc9d90cc576c3188a7f55df4c129a7dfb923e1ce4d91ed154d  cswinrt-2.2.0-NOTICE.txt
+a89886665765362eb77e0f8e26602c924520041d1711b2eedc136434fe4d01ab  dotnet-desktop-10.0.11-LICENSE.txt
+d7a68596ab69b06f51ca278a6545148e4269a9381c26d597c13df5d88e08cf5b  dotnet-runtime-10.0.11-LICENSE.txt
+6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21  dotnet-runtime-10.0.11-THIRD-PARTY-NOTICES.txt
+1cc7abd1e97575838535484bef6e4ab14e81681ddf7837672acede5fca1d4e30  sharpgen-2.4.2-beta-LICENSE.txt
+f4774be25bdec109703d6ca55e6b1e2ebf613a17aed989cd86dd57fc92c628e8  sharpgen.runtime-2.4.2-beta.nuspec
+fd79838f249d7b1de60f87edbe64dc435318e48dc1b912d6c7157f38d3cf01bb  sharpgen.runtime.com-2.4.2-beta.nuspec
+e40e813088b307b0a69ba95dac084b1b002a349ff398e10935d7970fcb9a5ebc  SOURCES.md
+cf72351fa2e9f2eb181af7fd508dd73da1d84ba43575cb98f7af22f26a81af5e  vortice-mathematics-2.0.0-LICENSE.txt
+82bd4e84d144bebbb519ed05899f0ceaeaf2e0f95160ac32fd8cc388710c76d0  vortice-windows-3.8.1-LICENSE.txt
+dd07eb178e00c6bba4148457fc00ff77cd4887eb521d504186fe59c9ec8bbe62  windows-sdk-LICENSE.rtf
+5a412b38efae0b162dc0893b319023f4cd14a8985a0f9f9ae01ac052b37a36eb  winforms-10.0.11-THIRD-PARTY-NOTICES.txt
+d23dba2fee20c6b59d8f7088ee9ed372459c952a319b7ca90f3eec370cc76eb9  wpf-10.0.11-THIRD-PARTY-NOTICES.txt

@@ -1,0 +1,10 @@
+NeuralFlow LOCAL development/test package
+
+This folder contains the already installed video dependencies used for local
+testing, including FFmpeg and PyAV's codec libraries. It is not the public
+distribution archive. Complete redistribution materials for every codec binary
+have not been assembled or verified.
+
+For distribution, use packaging/build.ps1 -Public. That package omits these
+media binaries and exposes an explicit upstream video-tool installation flow.
+The public package also omits NVIDIA runtime files and requires user import.

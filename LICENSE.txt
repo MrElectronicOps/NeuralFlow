@@ -1,0 +1,5 @@
+NeuralFlow Preview is provided for evaluation, without a promise of fitness for a particular purpose or universal hardware compatibility.
+
+Third-party software retains its own license terms. See THIRD-PARTY-NOTICES.md and the included dependency license files. This package conveys no rights to NVIDIA runtime files or NVIDIA trademarks. Runtime files are retrieved from the recorded community sources through an explicit setup action or imported locally, subject to their applicable terms.
+
+NeuralFlow is an independent experimental project and is not endorsed by or affiliated with NVIDIA or AMD.

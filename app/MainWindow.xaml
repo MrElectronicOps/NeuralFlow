@@ -1,0 +1,86 @@
+<Window x:Class="NeuralFlow.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="NeuralFlow" Width="1240" Height="900" MinWidth="620" MinHeight="600" WindowStartupLocation="CenterScreen" SizeChanged="OnSizeChanged" Background="{StaticResource CanvasBrush}" Foreground="{StaticResource TextBrush}" FontFamily="Segoe UI Variable, Segoe UI" FontSize="16">
+ <Grid Background="{StaticResource CanvasBrush}">
+  <Grid.RowDefinitions><RowDefinition Height="82"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Border Grid.Row="0" BorderBrush="#293549" BorderThickness="0,0,0,1" Padding="26,16">
+   <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Viewbox Width="40" Height="40" Margin="0,0,12,0"><Canvas Width="40" Height="40"><Path Stroke="#71E4F2" StrokeThickness="3" Data="M 3,28 C 12,28 9,8 19,8 L 36,8 M 3,35 C 17,35 17,15 27,15 L 36,15" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Path Stroke="#A79AFF" StrokeThickness="3" Data="M 3,20 L 9,20 M 28,29 L 36,29"/></Canvas></Viewbox><TextBlock x:Name="Brand" Text="NeuralFlow" FontSize="27" FontWeight="SemiBold"/></StackPanel>
+    <TextBlock x:Name="Descriptor" Grid.Column="1" Text="EXPERIMENTAL DLSS 5 SCREEN LAB" FontSize="11" Foreground="#8D9BB0" VerticalAlignment="Center" Margin="24,0"/>
+    <Button Grid.Column="2" Content="Restore original · F9" Click="StopClick" AutomationProperties.Name="Restore original immediately"/>
+   </Grid>
+  </Border>
+  <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition x:Name="NavColumn" Width="176"/><ColumnDefinition/></Grid.ColumnDefinitions>
+   <Border Background="#0F1520" BorderBrush="#202B3C" BorderThickness="0,0,1,0" Padding="12,28">
+    <DockPanel LastChildFill="True"><TextBlock DockPanel.Dock="Bottom" x:Name="VersionLabel" Text="PREVIEW 0.6&#x0a;LOCAL PROCESSING" FontSize="11" Foreground="#8492A7" Margin="8,20"/>
+     <StackPanel><Button x:Name="LiveNav" Content="◉   Live" HorizontalContentAlignment="Left" Margin="0,0,0,10" Click="LiveClick" AutomationProperties.Name="Live enhancement"/><Button x:Name="VideoNav" Content="▷   Video Studio" Margin="0,0,0,10" Click="VideoClick" AutomationProperties.Name="Video Studio"/><Button x:Name="SystemNav" Content="⚙   System" Click="SystemClick" AutomationProperties.Name="System and compatibility"/></StackPanel>
+    </DockPanel>
+   </Border>
+   <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="28,24" x:Name="PageScroller">
+    <Grid>
+     <StackPanel x:Name="LivePage">
+      <TextBlock Text="Make the picture yours." FontSize="32" FontWeight="SemiBold" Margin="0,0,0,8"/>
+      <TextBlock Style="{StaticResource Caption}" Text="Enhance your chosen window or display. Adjust it live, at your pace." Margin="0,0,0,24"/>
+      <Border x:Name="SetupBanner" Style="{StaticResource Card}" Background="#172536" Visibility="Collapsed"><StackPanel><TextBlock Text="Start here. We handle the setup." FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Install the required components and check your GPU with one button. No searching for files." Style="{StaticResource Caption}" Margin="0,8,0,14"/><Button Content="Open setup" Click="SystemClick" HorizontalAlignment="Left" Style="{StaticResource PrimaryButton}"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}"><StackPanel>
+       <TextBlock Text="01  /  CHOOSE YOUR CANVAS" Foreground="#71E4F2" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,14"/>
+       <UniformGrid Columns="2" Margin="0,0,0,14"><Button x:Name="WindowMode" Content="▣  Application window" Click="WindowModeClick" Margin="0,0,6,0"/><Button x:Name="MonitorMode" Content="▰  Entire display" Click="MonitorModeClick" Margin="6,0,0,0"/></UniformGrid>
+       <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><ComboBox x:Name="TargetPicker" DisplayMemberPath="Name" AutomationProperties.Name="Capture source" SelectionChanged="TargetChanged"/><Button Grid.Column="1" Content="Refresh" Margin="10,0,0,0" Click="RefreshClick"/></Grid>
+       <TextBlock x:Name="TargetHint" Style="{StaticResource Caption}" Text="Choose a window, then enable and return to it. Your controls stay available." Margin="0,12,0,0"/>
+      </StackPanel></Border>
+      <Border Style="{StaticResource Card}" Background="#172536"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <StackPanel><TextBlock x:Name="EffectState" Text="Ready when you are" FontSize="23" FontWeight="SemiBold"/><TextBlock x:Name="EffectDescription" Style="{StaticResource Caption}" Text="Effects are off. Original picture is visible." Margin="0,6,14,0"/></StackPanel>
+       <StackPanel Grid.Column="1"><Button x:Name="EnableButton" Content="Enable effects · F8" Style="{StaticResource PrimaryButton}" Click="EnableClick"/><Button Content="Floating controls ↗" Click="FloatingClick" Margin="0,8,0,0"/></StackPanel>
+      </Grid></Border>
+      <UniformGrid Columns="3" Margin="0,0,0,18"><Button Content="Smooth" Tag="Smooth" Click="PresetClick" Margin="0,0,5,0"/><Button Content="Balanced" Tag="Balanced" Click="PresetClick" Margin="5,0"/><Button Content="Detail" Tag="Detail" Click="PresetClick" Margin="5,0,0,0"/></UniformGrid>
+      <Grid x:Name="ControlGrid"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+       <Border x:Name="NeuralCard" Style="{StaticResource Card}" Margin="0,0,8,16"><StackPanel>
+        <TextBlock Text="Neural detail" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,20"/>
+        <DockPanel><TextBlock Text="Strength"/><TextBlock Text="{Binding ElementName=Strength,Path=Value,StringFormat={}{0:0}%}" HorizontalAlignment="Right" Foreground="#71E4F2"/></DockPanel><Slider x:Name="Strength" Minimum="0" Maximum="100" Value="15" ValueChanged="SettingsChanged" AutomationProperties.Name="Neural strength"/>
+        <DockPanel><TextBlock Text="Stability"/><TextBlock Text="{Binding ElementName=Stability,Path=Value,StringFormat={}{0:0}%}" HorizontalAlignment="Right" Foreground="#71E4F2"/></DockPanel><Slider x:Name="Stability" Minimum="0" Maximum="100" Value="75" ValueChanged="SettingsChanged" AutomationProperties.Name="Temporal stability"/>
+        <TextBlock Text="Processing size" Style="{StaticResource Caption}" Margin="0,6,0,8"/><ComboBox x:Name="Resolution" SelectedIndex="0" SelectionChanged="SettingsChanged" AutomationProperties.Name="Processing resolution"><ComboBoxItem Content="Auto"/></ComboBox>
+        <TextBlock Text="Neural updates per second" Style="{StaticResource Caption}" Margin="0,14,0,8"/><ComboBox x:Name="RefreshRate" SelectedIndex="2" SelectionChanged="SettingsChanged" AutomationProperties.Name="Neural updates per second"><ComboBoxItem Content="1"/><ComboBoxItem Content="2"/><ComboBoxItem Content="3"/><ComboBoxItem Content="4"/></ComboBox>
+        <TextBlock Text="Higher stability smooths changes more slowly. Processing size is independent of display resolution." Style="{StaticResource Caption}" Margin="0,14,0,0"/>
+       </StackPanel></Border>
+       <Border x:Name="ColorCard" Grid.Column="1" Style="{StaticResource Card}" Margin="8,0,0,16"><StackPanel>
+        <TextBlock Text="Finish &amp; color" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,20"/>
+        <TextBlock Text="Clarity"/><Slider x:Name="Clarity" Minimum="0" Maximum="100" ValueChanged="SettingsChanged" AutomationProperties.Name="Clarity"/>
+        <TextBlock Text="Vibrance / saturation"/><Slider x:Name="Vibrance" Minimum="-40" Maximum="60" ValueChanged="SettingsChanged" AutomationProperties.Name="Vibrance saturation"/>
+        <TextBlock Text="Contrast"/><Slider x:Name="Contrast" Minimum="-25" Maximum="30" ValueChanged="SettingsChanged" AutomationProperties.Name="Contrast"/>
+        <Expander Header="More color controls"><StackPanel Margin="0,14,0,0"><TextBlock Text="Brightness"/><Slider x:Name="Brightness" Minimum="-12" Maximum="12" ValueChanged="SettingsChanged" AutomationProperties.Name="Brightness"/><TextBlock Text="Warmth"/><Slider x:Name="Warmth" Minimum="-100" Maximum="100" ValueChanged="SettingsChanged" AutomationProperties.Name="Warmth"/><TextBlock Text="Tone"/><Slider x:Name="Tone" Minimum="0" Maximum="100" ValueChanged="SettingsChanged" AutomationProperties.Name="Tone"/></StackPanel></Expander>
+        <TextBlock Text="These finishing controls are separate from neural rendering." Style="{StaticResource Caption}" Margin="0,14,0,0"/>
+       </StackPanel></Border>
+      </Grid>
+     </StackPanel>
+     <StackPanel x:Name="VideoPage" Visibility="Collapsed" AllowDrop="True" Drop="VideoDrop">
+      <TextBlock Text="Let quality take its time." FontSize="32" FontWeight="SemiBold" Margin="0,0,0,8"/><TextBlock Style="{StaticResource Caption}" Text="Prepare every frame, then play the finished picture with synchronized sound." Margin="0,0,0,24"/>
+      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Your source" FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="VideoSourceLabel" Text="Drop a video here, or choose a file." Style="{StaticResource Caption}" Margin="0,10,0,16"/><Button Content="Choose video…" Click="ChooseVideoClick" HorizontalAlignment="Left"/><TextBlock Text="Neural strength" Margin="0,20,0,0"/><Slider x:Name="VideoStrength" Minimum="0" Maximum="100" Value="70" AutomationProperties.Name="Video neural strength"/><TextBlock Text="Temporal stability"/><Slider x:Name="VideoStability" Minimum="0" Maximum="100" Value="75" AutomationProperties.Name="Video stability"/>
+       <TextBlock Text="Export format" Style="{StaticResource Caption}" Margin="0,8"/><ComboBox x:Name="VideoFormat" SelectedIndex="0"><ComboBoxItem Content="High-quality MP4"/><ComboBoxItem Content="Lossless MKV"/></ComboBox>
+       <TextBlock Text="SDR video · original timing · original file stays untouched" Style="{StaticResource Caption}" Margin="0,12,0,18"/>
+       <WrapPanel><Button x:Name="RenderButton" Content="Render &amp; prepare playback" Style="{StaticResource PrimaryButton}" Click="RenderClick" Margin="0,0,10,8"/><Button Content="Cancel render" Click="CancelClick" Margin="0,0,0,8"/></WrapPanel><ProgressBar x:Name="RenderProgress" Height="5" Minimum="0" Maximum="100" Margin="0,12,0,12"/><TextBlock x:Name="RenderStatus" Text="Ready for your first video." Style="{StaticResource Caption}"/>
+      </StackPanel></Border>
+      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Review the result" FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="PlayerState" Text="A completed render will appear here." Style="{StaticResource Caption}" Margin="0,8,0,16"/>
+       <Grid x:Name="PlayerSurface" Height="320" Background="Black"><MediaElement x:Name="OriginalPlayer" LoadedBehavior="Manual" UnloadedBehavior="Manual" ScrubbingEnabled="True" Stretch="Uniform" MediaOpened="MediaOpened" MediaEnded="MediaEnded" MediaFailed="MediaFailed"/><MediaElement x:Name="EnhancedPlayer" LoadedBehavior="Manual" UnloadedBehavior="Manual" ScrubbingEnabled="True" Stretch="Uniform" MediaOpened="MediaOpened" MediaEnded="MediaEnded" MediaFailed="MediaFailed"/></Grid>
+       <Slider x:Name="Seek" Minimum="0" Maximum="1" ValueChanged="SeekChanged" AutomationProperties.Name="Playback position"/>
+       <WrapPanel><Button Content="Play / pause" Click="PlayClick" Margin="0,0,8,8"/><Button x:Name="CompareVideoButton" Content="Show original" Click="CompareVideoClick" Margin="0,0,8,8"/><Button Content="Fullscreen" Click="FullscreenClick" Margin="0,0,8,8"/><Button Content="Open completed file" Click="OpenOutputClick" Margin="0,0,0,8"/></WrapPanel>
+       <DockPanel><TextBlock Text="Volume" VerticalAlignment="Center"/><Slider x:Name="Volume" Minimum="0" Maximum="1" Value=".7" Width="180" HorizontalAlignment="Left" ValueChanged="VolumeChanged" AutomationProperties.Name="Playback volume"/></DockPanel>
+      </StackPanel></Border>
+     </StackPanel>
+     <StackPanel x:Name="SystemPage" Visibility="Collapsed">
+      <TextBlock Text="Know your setup." FontSize="32" FontWeight="SemiBold" Margin="0,0,0,8"/><TextBlock Style="{StaticResource Caption}" Text="A small local test finds the neural settings your hardware can actually run." Margin="0,0,0,24"/>
+      <Border Style="{StaticResource Card}" Background="#172536"><StackPanel><TextBlock Text="Everything ready, in one step." FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Downloads the pinned community neural components and video tools, verifies their files, and checks your GPU automatically. Internet is needed for first setup; processing stays local afterward." Style="{StaticResource Caption}" Margin="0,10,0,12"/><TextBlock Text="Experimental community-modified NVIDIA runtime; not an official NVIDIA download. Upstream terms apply. About 300 MB to download; allow 1 GB of free disk space." Style="{StaticResource Caption}" Margin="0,0,0,16"/><WrapPanel><Button x:Name="CompleteSetupButton" Content="Complete setup" Click="CompleteSetupClick" Style="{StaticResource PrimaryButton}" Margin="0,0,12,10" AutomationProperties.Name="Download components and check hardware"/><Button Content="Cancel setup" Click="CancelClick" Margin="0,0,0,10"/></WrapPanel><TextBlock x:Name="SetupStatus" Text="No manual DLL selection needed." Style="{StaticResource Caption}"/><ProgressBar x:Name="SetupProgress" Height="5" Margin="0,14,0,0" Visibility="Collapsed" IsIndeterminate="True"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Compatibility" FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="HardwareSummary" Text="Checking local setup…" Margin="0,14,0,16"/>
+       <TextBlock Text="Rendering adapter" Style="{StaticResource Caption}" Margin="0,0,0,8"/><ComboBox x:Name="AdapterPicker" DisplayMemberPath="Name" SelectionChanged="AdapterChanged" AutomationProperties.Name="Neural rendering GPU" Margin="0,0,0,16"/>
+       <WrapPanel><Button Content="Import neural runtime…" Click="ImportClick" Margin="0,0,10,10"/><Button x:Name="BenchmarkButton" Content="Check my hardware" Style="{StaticResource PrimaryButton}" Click="BenchmarkClick" Margin="0,0,10,10"/><Button Content="Cancel check" Click="CancelClick" Margin="0,0,0,10"/></WrapPanel>
+       <TextBlock x:Name="BenchmarkStatus" Text="Only successfully tested processing sizes become selectable." Style="{StaticResource Caption}" Margin="0,8,0,0"/>
+       <Expander Header="Detailed diagnostics"><TextBox x:Name="Diagnostics" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="260" VerticalScrollBarVisibility="Auto" Margin="0,14,0,0" AutomationProperties.Name="Compatibility diagnostics"/></Expander>
+       <Button Content="Save diagnostic report…" Click="SaveDiagnosticsClick" HorizontalAlignment="Left" Margin="0,16,0,0"/>
+      </StackPanel></Border>
+      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Video tools" FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="MediaToolsStatus" Text="Checking video tools…" Style="{StaticResource Caption}" Margin="0,12,0,16"/><Button x:Name="InstallMediaButton" Content="Download video tools" Click="InstallMediaClick" HorizontalAlignment="Left"/><TextBlock Text="Optional download from the original package publishers. Needed for Video Studio; live enhancement works independently." Style="{StaticResource Caption}" Margin="0,12,0,0"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Preferences" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,12"/><CheckBox x:Name="ReducedMotion" Content="Reduce decorative motion" IsChecked="True"/><TextBlock Style="{StaticResource Caption}" Text="This preview uses static surfaces and respects the Windows motion setting." Margin="0,6,0,12"/><Button Content="Reset appearance controls" Click="ResetClick" HorizontalAlignment="Left"/></StackPanel></Border>
+      <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Independent. Experimental. Local." FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="AboutText" Style="{StaticResource Caption}" Margin="0,12,0,0"/><TextBlock Text="NVIDIA beta · AMD neural rendering not available in this build. Screen enhancement is not native game-integrated DLSS." Style="{StaticResource Caption}" Margin="0,12,0,0"/></StackPanel></Border>
+     </StackPanel>
+    </Grid>
+   </ScrollViewer>
+  </Grid>
+  <Border Grid.Row="2" Background="#14202D" BorderBrush="#293549" BorderThickness="0,1,0,0" Padding="22,12"><DockPanel><Ellipse Width="7" Height="7" Fill="#71E4F2" Margin="0,0,12,0"/><TextBlock x:Name="Status" Text="Starting local engine…" FontSize="14"/></DockPanel></Border>
+ </Grid>
+</Window>
