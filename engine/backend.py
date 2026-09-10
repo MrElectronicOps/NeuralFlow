@@ -96,7 +96,7 @@ def import_runtime(source_dir, data_dir):
         staging.rename(destination)
         metadata = validate_runtime(destination)
         manifest = dict(metadata, imported_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
-                        provenance=PROFILE, redistribution='NVIDIA runtime is user imported; not bundled by NeuralFlow.')
+                        provenance=PROFILE, redistribution='Component verification does not grant redistribution rights.')
         (destination / 'import-manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
         return metadata
     finally:

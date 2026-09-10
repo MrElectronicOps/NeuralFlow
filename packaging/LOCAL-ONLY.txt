@@ -7,4 +7,7 @@ have not been assembled or verified.
 
 For distribution, use packaging/build.ps1 -Public. That package omits these
 media binaries and exposes an explicit upstream video-tool installation flow.
-The public package also omits NVIDIA runtime files and requires user import.
+The public package also omits NVIDIA runtime files and offers automatic setup.
+An offline test package built with -OfflineRuntimeDirectory includes the exact
+verified neural DLL pair. It requires no component downloads. Redistribution
+rights for that modified NVIDIA runtime have not been verified.

@@ -67,6 +67,9 @@ def _safe_member(name):
 
 
 def install_video_tools(data_dir, cancel, progress):
+    _check(cancel)
+    if media_tools_status(data_dir)["available"]:
+        return configure_media_tools(data_dir)
     directory = Path(data_dir).resolve()
     directory.mkdir(parents=True, exist_ok=True)
     target = directory / "media-tools"

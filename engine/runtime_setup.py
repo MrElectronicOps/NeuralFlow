@@ -52,13 +52,15 @@ def download(asset, destination, cancel, progress):
 
 
 def extract_runtime(archive, destination, cancel):
-    # Windows 11 ships libarchive tar, which can read this self-extracting 7z.
-    # Stream ONE exact member to a fixed file; never execute the .exe or unpack paths.
-    tar = Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32/tar.exe"
+    check(cancel)
+    # Use our pinned extractor, independently of the Windows tar version.
+    tar = Path(__file__).resolve().parent / "tools/archive/7zr.exe"
     if not tar.is_file():
-        raise RuntimeError("Windows archive support is missing. Complete setup requires Windows 11's tar.exe.")
+        raise RuntimeError("The bundled archive extractor is missing. Reinstall NeuralFlow.")
+    if file_hash(tar) != "ad4c82fadcbdf93c03b4fc440f300509c7d60c5c2f4d183e35d9d70d6957037d":
+        raise RuntimeError("The bundled archive extractor failed verification. Reinstall NeuralFlow.")
     with destination.open("xb") as output, tempfile.TemporaryFile() as errors:
-        process = subprocess.Popen([str(tar), "-xOf", str(archive),
+        process = subprocess.Popen([str(tar), "x", "-so", "-y", str(archive),
                                     "resources/payload/streamline/nvngx_dlssnr.dll"],
                                    stdout=output, stderr=errors, creationflags=subprocess.CREATE_NO_WINDOW)
         deadline = time.monotonic() + 120
@@ -69,7 +71,9 @@ def extract_runtime(archive, destination, cancel):
                     raise RuntimeError("Runtime extraction timed out. Retry Complete setup.")
                 time.sleep(.05)
             if process.returncode:
-                raise RuntimeError("Windows could not extract the verified neural component.")
+                errors.seek(0)
+                detail = errors.read(4096).decode("utf-8", errors="replace").strip()
+                raise RuntimeError(f"Neural component extraction failed (7-Zip exit {process.returncode}): {detail}")
         finally:
             if process.poll() is None:
                 process.kill()
@@ -84,6 +88,17 @@ def install(data_dir, cancel, progress):
     if (data / "runtime").exists():
         return validate_runtime(data / "runtime")
     data.mkdir(parents=True, exist_ok=True)
+    bundled = Path(__file__).resolve().parent / "bundled-runtime"
+    if bundled.exists():
+        progress({"message": "Verifying bundled neural components (no download)…"})
+        validate_runtime(bundled)
+        check(cancel)
+        result = import_runtime(bundled, data)
+        (data / "runtime/setup-sources.json").write_text(json.dumps({
+            "assets": ASSETS, "profile": PROFILE["id"], "method": "bundled-offline",
+            "official_nvidia_support": False,
+        }, indent=2), encoding="utf-8")
+        return result
     if shutil.disk_usage(data).free < 1024 ** 3:
         raise RuntimeError('Complete setup needs at least 1 GB of free disk space.')
     with tempfile.TemporaryDirectory(prefix="component-setup-", dir=data) as temporary:

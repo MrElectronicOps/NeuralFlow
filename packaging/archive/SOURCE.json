@@ -1,0 +1,8 @@
+{
+  "name": "7-Zip Reduced standalone extractor",
+  "version": "26.03",
+  "url": "https://www.7-zip.org/a/7zr.exe",
+  "sha256": "ad4c82fadcbdf93c03b4fc440f300509c7d60c5c2f4d183e35d9d70d6957037d",
+  "hash_note": "Locally computed after downloading from the official HTTPS source; not a published upstream checksum.",
+  "license": "7zr identifies itself as Public domain. General upstream license included in LICENSE.txt."
+}

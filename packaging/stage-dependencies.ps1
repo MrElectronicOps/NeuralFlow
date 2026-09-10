@@ -5,6 +5,15 @@ $downloads = Join-Path $PSScriptRoot 'downloads'
 $python = Join-Path $root 'python'
 $tools = Join-Path $root 'engine/tools'
 New-Item -ItemType Directory -Force -Path $downloads,$python,$tools | Out-Null
+$archiveTools = Join-Path $tools 'archive'
+New-Item -ItemType Directory -Force -Path $archiveTools | Out-Null
+$extractor = Join-Path $archiveTools '7zr.exe'
+if (-not (Test-Path -LiteralPath $extractor)) {
+    if ($SkipDownload) { throw 'The pinned 7-Zip extractor is missing.' }
+    Invoke-WebRequest -Uri 'https://www.7-zip.org/a/7zr.exe' -OutFile $extractor
+}
+if ((Get-FileHash -LiteralPath $extractor -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'ad4c82fadcbdf93c03b4fc440f300509c7d60c5c2f4d183e35d9d70d6957037d') { throw 'Extractor hash differs from the tested 26.03 version. Do not use an unreviewed update.' }
+Copy-Item -Path (Join-Path $PSScriptRoot 'archive/*') -Destination $archiveTools -Force
 $pythonName = 'python-3.12.10-embed-amd64.zip'
 $pythonZip = Join-Path $downloads $pythonName
 $pythonUrl = 'https://www.python.org/ftp/python/3.12.10/' + $pythonName

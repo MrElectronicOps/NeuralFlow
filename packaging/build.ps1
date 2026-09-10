@@ -1,5 +1,6 @@
-param([switch]$SkipPublish, [switch]$SkipZip, [switch]$BuildInstaller, [switch]$Public, [string]$ReleaseFolder)
+param([switch]$SkipPublish, [switch]$SkipZip, [switch]$BuildInstaller, [switch]$Public, [string]$ReleaseFolder, [string]$OfflineRuntimeDirectory)
 $ErrorActionPreference = 'Stop'
+if ($Public -and $OfflineRuntimeDirectory) { throw 'Offline runtime packaging is a separate local test build.' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $dist = Join-Path $root 'dist'
 if ($ReleaseFolder) {
@@ -32,6 +33,19 @@ function Copy-Tree([string]$Source, [string]$Destination) {
 }
 Copy-Tree (Join-Path $root 'engine') (Join-Path $output 'engine')
 Copy-Tree (Join-Path $root 'python') (Join-Path $output 'python')
+$offlineFiles = @{
+    'nvngx_dlssnr.dll' = '8270b350cd82de5ce89806872cdd6b6a9249b80836b91bbeb3573470744cc206'
+    'caller/nvngx.dll_comfy.dll' = '62f38c26846c355ff2f122a1a077aa8ea3e56cac344b8d0b1724f594aeb99b9d'
+}
+if ($OfflineRuntimeDirectory) {
+    foreach ($relative in $offlineFiles.Keys) {
+        $source = Join-Path $OfflineRuntimeDirectory $relative
+        if ((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $offlineFiles[$relative]) { throw 'Offline runtime does not match the verified profile.' }
+        $target = Join-Path $output ('engine/bundled-runtime/'+$relative)
+        New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
+        Copy-Item -LiteralPath $source -Destination $target -Force
+    }
+}
 $licenseSource = Join-Path $PSScriptRoot 'licenses'
 # Self-contained .NET publishing does not copy the runtime package notices.
 # Refuse a future runtime update until its matching notices are staged, too.
@@ -55,7 +69,15 @@ foreach ($name in @('README.md','VIDEO-PIPELINE.md','THIRD-PARTY-NOTICES.md','CO
     if (Test-Path -LiteralPath $source) { Copy-Item -LiteralPath $source -Destination $output -Force }
 }
 foreach ($file in Get-ChildItem -LiteralPath $output -Recurse -File) {
-    if ($file.Name -match '^(nvngx|_nvngx|nvcuda).*\.dll$') { throw ('Forbidden NVIDIA runtime in finished package: '+$file.FullName) }
+    if ($file.Name -match '^(nvngx|_nvngx|nvcuda).*\.dll$') {
+        $allowed = $false
+        if ($OfflineRuntimeDirectory) {
+            foreach ($relative in $offlineFiles.Keys) {
+                if ($file.FullName -eq (Join-Path $output ('engine/bundled-runtime/'+$relative)) -and (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -eq $offlineFiles[$relative]) { $allowed = $true }
+            }
+        }
+        if (-not $allowed) { throw ('Unexpected NVIDIA runtime in finished package: '+$file.FullName) }
+    }
     if ($Public -and ($file.Name -eq 'ffmpeg.exe' -or $file.Name -like 'opencv_videoio_ffmpeg*.dll' -or $file.FullName -like '*\engine\vendor\av\*' -or $file.FullName -like '*\engine\vendor\av.libs\*')) { throw ('Media binary must be user-installed, not bundled in public package: '+$file.FullName) }
     if ($file.Extension -in @('.py','.json','.md','._pth')) {
         if (Select-String -LiteralPath $file.FullName -Pattern 'C:[\\/]Users[\\/]jaimu' -Quiet) { throw ('Personal path found in distribution: '+$file.FullName) }
@@ -82,7 +104,7 @@ if (-not $SkipZip) {
     Write-Output $archive
 }
 if ($BuildInstaller) {
-    if (-not $Public) { throw 'The redistributable installer must be built from the public package.' }
+    if (-not $Public -and -not $OfflineRuntimeDirectory) { throw 'Specify public or explicitly staged offline components for an installer.' }
     if ($SkipZip) { throw 'Installer publishing requires the package ZIP.' }
     & dotnet publish (Join-Path $root 'installer/NeuralFlow.Setup.csproj') -c Release -r win-x64 --self-contained true -o (Join-Path $dist 'installer') "-p:PayloadZipPath=$archive" -p:DebugType=None -p:DebugSymbols=false "-p:PathMap=$root=/_/NeuralFlow"
     if ($LASTEXITCODE -ne 0) { throw 'Installer publish failed.' }

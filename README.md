@@ -2,19 +2,17 @@
 
 Experimental DLSS 5 Screen Lab — Windows 11 x64, NVIDIA-first beta.
 
-**[Download the Windows installer](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.2/NeuralFlowPreviewSetup.exe)** · [Portable ZIP](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.2/NeuralFlow-Preview.zip)
+**[Download the complete Windows installer](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.3/NeuralFlowPreviewSetup.exe)** · [Portable ZIP](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.3/NeuralFlow-Preview.zip)
 
 Install → open **System → Complete setup** → choose a window or display.
-Setup fetches and verifies the required components for you. No DLL hunting.
-
-![NeuralFlow Complete setup screen](docs/screenshots/setup.png)
+Neural components and video tools are included. No separate component downloads.
 
 NeuralFlow enhances a selected window or display using a local, experimental NVIDIA neural runtime and motion-stabilized residual composition. It also prepares local videos for consistent playback. It does not install native DLSS support into games, and it is not an NVIDIA product.
 
 ## Start
 
 1. Install **NeuralFlow Preview**, or extract the complete portable ZIP and open **NeuralFlow.exe**. Keep the entire folder together.
-2. Open **System → Complete setup**. One button downloads the pinned community neural components and video tools, verifies them and checks your NVIDIA GPU. No separate DLL search or manual file copying is required. Allow approximately 300 MB of downloads and at least 1 GB of free space. First setup needs internet; rendering afterward stays local.
+2. Open **System → Complete setup**. One button verifies components and checks your NVIDIA GPU. The offline package includes neural components and video tools and needs no setup downloads. The standard package downloads missing components (approximately 300 MB). Allow at least 1 GB of free space. No separate DLL search or manual copying is required.
 3. Wait for **Setup complete**. Only sizes that pass actual neural evaluation become selectable. Already verified components are reused when setup is repeated. **Cancel setup** stops preparation; completed components are retained so a retry can reuse them.
 4. Open **Live**, choose **Application window** or **Entire display**, select the source, then enable effects. Return to the selected application. Floating controls remain accessible.
 5. **F8** toggles effects. **F9** restores the original. All effects start OFF.
@@ -23,7 +21,7 @@ If the runtime is unavailable, zero neural strength allows the separate clarity 
 
 ## Components and advanced runtime import
 
-The neural files are fetched on your explicit Complete setup action from the recorded community releases, rather than included inside NeuralFlow's download. This uses a community-modified runtime, not an official NVIDIA release. It does not establish official GPU support or grant additional rights to those binaries. The original project's executable is treated only as an archive and is never executed. Both archive hashes and the extracted DLL hashes must match this preview's pinned values before loading.
+The standard package fetches neural files on your explicit Complete setup action from recorded community releases. The offline test package includes the exact same verified DLL pair. This uses a community-modified runtime, not an official NVIDIA release. It does not establish official GPU support or grant redistribution rights. When downloading, the upstream executable is treated only as an archive and is never executed. Archive hashes and DLL hashes must match pinned values before loading; offline imports also verify the DLL hashes.
 
 Manual **Import neural runtime** remains available for an existing compatible local folder. The installed NVIDIA driver core is discovered locally; setup never downloads or replaces a graphics driver.
 
