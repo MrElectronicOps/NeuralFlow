@@ -2,7 +2,7 @@
 
 Experimental DLSS 5 Screen Lab — Windows 11 x64, NVIDIA-first beta.
 
-**[Download the complete Windows installer](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.4/NeuralFlowPreviewSetup.exe)** · [Portable ZIP](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.4/NeuralFlow-Preview.zip)
+**[Download the complete Windows installer](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.5/NeuralFlowPreviewSetup.exe)** · [Portable ZIP](https://github.com/MrElectronicOps/NeuralFlow/releases/download/v0.6.0-preview.5/NeuralFlow-Preview.zip)
 
 Install → open **System → Complete setup** → choose a window or display.
 Neural components and video tools are included. No separate component downloads.

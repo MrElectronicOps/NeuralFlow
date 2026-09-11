@@ -164,11 +164,16 @@ class Backend:
             self.initialization_error = str(error)
 
     def status(self):
+        failed = bool(self.cache and self.cache.get('complete') and not self.cache['supported_sizes'])
+        failures = [{'size': r['size'], 'error': r.get('error', 'Output validation failed')}
+                    for r in (self.cache or {}).get('results', []) if not r.get('passed')]
         return {'available': self.initialization_error is None, 'error': self.initialization_error,
+                'neural_ready': bool(self.cache and self.cache['supported_sizes']),
+                'failure_summary': failures,
                 'adapter': self.adapter, 'adapters': self.adapters, 'core': self.core, 'runtime': self.runtime,
                 'cache_key': self.cache_key, 'benchmark': self.cache,
                 'supported_sizes': self.cache['supported_sizes'] if self.cache else [],
-                'compatibility': ('Unavailable' if self.initialization_error else 'Verified' if self.cache and self.cache['supported_sizes'] else 'Not tested'),
+                'compatibility': ('Unavailable' if self.initialization_error or failed else 'Verified' if self.cache and self.cache['supported_sizes'] else 'Not tested'),
                 'backend': 'Experimental NVIDIA feature-18 image enhancement', 'official_native_dlss': False}
 
     def _receive(self, timeout, cancel=None):

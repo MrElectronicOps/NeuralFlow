@@ -189,23 +189,25 @@ class Service:
         elif op=='benchmark':self.launch('benchmark',lambda:self.backend.benchmark(self.progress,self.cancel))
         elif op=='install_media':self.launch('media',lambda:media_tools.install(self.data,self.cancel,self.progress))
         elif op=='complete_setup':
-            if not self.backend.adapter:raise RuntimeError('Neural setup needs an NVIDIA GPU and its installed driver. Video tools can be installed separately.')
-            if not self.backend.core:raise RuntimeError('The installed NVIDIA driver core is unavailable. Complete setup does not install or replace graphics drivers.')
             def setup():
-                luid=self.backend.adapter['luid']
-                runtime_setup.install(self.data,self.cancel,self.progress)
-                runtime_setup.check(self.cancel)
-                previous=self.backend;previous.close()
-                self.backend=Backend(self.data,adapter_luid=luid)
                 self.progress({'message':'Installing video tools…'})
                 media_tools.install(self.data,self.cancel,self.progress)
                 runtime_setup.check(self.cancel)
-                if not self.backend.status()['supported_sizes']:
-                    self.progress({'message':'Checking neural processing sizes on your GPU…'})
-                    self.backend.benchmark(self.progress,self.cancel)
-                if not self.backend.status()['supported_sizes']:
-                    raise RuntimeError('Components installed, but neural evaluation did not pass on this GPU. See compatibility diagnostics.')
-                return self.status()
+                if self.backend.adapter and self.backend.core:
+                    luid=self.backend.adapter['luid']
+                    runtime_setup.install(self.data,self.cancel,self.progress)
+                    runtime_setup.check(self.cancel)
+                    previous=self.backend;previous.close()
+                    self.backend=Backend(self.data,adapter_luid=luid)
+                    if not self.backend.cache or not self.backend.cache.get('complete'):
+                        self.progress({'message':'Checking neural processing sizes on your GPU…'})
+                        self.backend.benchmark(self.progress,self.cancel)
+                result=self.status()
+                neural=bool(result['backend']['supported_sizes'])
+                result['setup_mode']='neural' if neural else 'non-neural'
+                result['setup_message']=('Setup complete · neural processing ready · effects are OFF' if neural else
+                    'Setup complete · non-neural mode. Clarity and color controls are available; neural processing is unavailable on this configuration. Save diagnostics in System to investigate.')
+                return result
             self.launch('setup',setup)
         elif op=='start':
             if self.busy:raise RuntimeError('Finish video preparation first.')
