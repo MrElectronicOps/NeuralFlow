@@ -9,6 +9,27 @@ using System.Windows.Threading;
 namespace NeuralFlow;
 public partial class MainWindow
 {
+    async Task RunWindowChecks(string folder)
+    {
+        Directory.CreateDirectory(folder);
+        Width=540;Height=420;await Dispatcher.InvokeAsync(()=>{},DispatcherPriority.ApplicationIdle);
+        ShowFloatingControls();await Task.Delay(300);
+        WindowState=WindowState.Minimized;await Task.Delay(300);
+        bool visible=floating is {IsVisible:true,WindowState:WindowState.Normal,Owner:null};
+        if(!visible)throw new InvalidOperationException("Floating controls minimized with main window.");
+        var panel=(StackPanel)((ScrollViewer)floating!.Content).Content;
+        var more=panel.Children.OfType<Expander>().Single();more.IsExpanded=true;
+        floating.Width=320;floating.Height=360;floating.UpdateLayout();
+        var sliders=((StackPanel)more.Content).Children.OfType<Slider>().ToArray();
+        double original=Clarity.Value;sliders[1].Value=23;
+        bool linked=Clarity.Value==23;Clarity.Value=original;
+        if(!linked)throw new InvalidOperationException("More controls are not linked to main settings.");
+        var bitmap=new RenderTargetBitmap((int)floating.ActualWidth,(int)floating.ActualHeight,96,96,PixelFormats.Pbgra32);bitmap.Render(floating);
+        var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using(var output=File.Create(Path.Combine(folder,"floating.png")))encoder.Save(output);
+        RestoreMainWindow();await Task.Delay(150);
+        File.WriteAllText(Path.Combine(folder,"window-checks.json"),JsonSerializer.Serialize(new{floating_survives_minimize=visible,more_controls_linked=linked,tray_created=tray is not null,main_width=ActualWidth,main_height=ActualHeight,floating_width=floating.ActualWidth,floating_height=floating.ActualHeight}));
+        Close();
+    }
     async Task RunSetupChecks(string reportPath)
     {
         ShowPage("System");CompleteSetupClick(this,new RoutedEventArgs());

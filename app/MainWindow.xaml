@@ -1,4 +1,4 @@
-<Window x:Class="NeuralFlow.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="NeuralFlow" Width="1240" Height="900" MinWidth="620" MinHeight="600" WindowStartupLocation="CenterScreen" SizeChanged="OnSizeChanged" Background="{StaticResource CanvasBrush}" Foreground="{StaticResource TextBrush}" FontFamily="Segoe UI Variable, Segoe UI" FontSize="16">
+<Window x:Class="NeuralFlow.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="NeuralFlow" Width="1240" Height="900" MinWidth="540" MinHeight="420" ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen" SizeChanged="OnSizeChanged" Background="{StaticResource CanvasBrush}" Foreground="{StaticResource TextBrush}" FontFamily="Segoe UI Variable, Segoe UI" FontSize="16">
  <Grid Background="{StaticResource CanvasBrush}">
   <Grid.RowDefinitions><RowDefinition Height="82"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
   <Border Grid.Row="0" BorderBrush="#293549" BorderThickness="0,0,0,1" Padding="26,16">

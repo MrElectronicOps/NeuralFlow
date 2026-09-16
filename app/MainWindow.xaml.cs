@@ -22,6 +22,11 @@ public partial class MainWindow : Window
     HwndSource? hotkeySource;
     string preset="Balanced",sourcePath="",outputPath="",diagnostics="";
     FloatingWindow? floating;
+    TrayController? tray;
+    public Button PowerControl=>EnableButton;
+    public IEnumerable<(string,Slider)> MoreControls=>new[]{("Clarity",Clarity),("Vibrance",Vibrance),("Contrast",Contrast),("Brightness",Brightness),("Warmth",Warmth),("Tone",Tone)};
+    public void RestoreMainWindow(){Show();WindowState=WindowState.Normal;Activate();}
+    public void ShowFloatingControls()=>FloatingClick(this,new RoutedEventArgs());
     Window? playerWindow;
     JsonElement lastStatus;
     public Slider StrengthControl=>Strength;
@@ -30,6 +35,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        StateChanged+=(_,__)=>{if(WindowState==WindowState.Minimized&&!closing)ShowFloatingControls();};
         SourceInitialized+=(_,__)=>{
             var handle=new WindowInteropHelper(this).Handle;
             hotkeySource=HwndSource.FromHwnd(handle);hotkeySource?.AddHook(HotkeyMessage);
@@ -51,12 +57,16 @@ public partial class MainWindow : Window
         engine.Failed+=message=>Dispatcher.BeginInvoke(()=>{if(!closing){ready=false;SetEnabled(false);Status.Text=message;}});
         Loaded+=async(_,__)=>{
             LoadBrand();LoadSettings();RefreshTargets();ShowPage("Live");ApplyLayout();
+            tray=new TrayController(this);
+            Width=Math.Min(Width,SystemParameters.WorkArea.Width);Height=Math.Min(Height,SystemParameters.WorkArea.Height);
             if(!Targets.SetWindowDisplayAffinity(new WindowInteropHelper(this).Handle,0x11))Status.Text="Control-window capture exclusion was unavailable.";
             await Execute(async()=>{await engine.Start();ready=true;await engine.Send("exclude",new{hwnd=new WindowInteropHelper(this).Handle.ToInt64()});ApplyStatus(await engine.Send("status"));Status.Text="Ready · effects OFF · F9 restores original";});
             if(!f8Registered||!f9Registered)Status.Text="Effects OFF · a shortcut is in use by another app. Use the on-screen controls.";
             heartbeat.Start();
             var args=Environment.GetCommandLineArgs();int qa=Array.IndexOf(args,"--ui-checks");
             if(qa>=0&&args.Length>qa+1)await RunUiChecks(args[qa+1]);
+            int windows=Array.IndexOf(args,"--window-checks");
+            if(windows>=0&&args.Length>windows+1)await RunWindowChecks(args[windows+1]);
             int playback=Array.IndexOf(args,"--playback-checks");
             if(playback>=0&&args.Length>playback+3)await RunPlaybackChecks(args[playback+1],args[playback+2],args[playback+3]);
             int control=Array.IndexOf(args,"--control-checks");
@@ -71,7 +81,7 @@ public partial class MainWindow : Window
             var handle=new WindowInteropHelper(this).Handle;
             if(f8Registered)Targets.UnregisterHotKey(handle,8);if(f9Registered)Targets.UnregisterHotKey(handle,9);
             hotkeySource?.RemoveHook(HotkeyMessage);
-            SaveSettings();OriginalPlayer.Close();EnhancedPlayer.Close();floating?.Close();playerWindow?.Close();engine.Dispose();
+            tray?.Dispose();SaveSettings();OriginalPlayer.Close();EnhancedPlayer.Close();floating?.Close();playerWindow?.Close();engine.Dispose();
         };
     }
     nint HotkeyMessage(nint hwnd,int message,nint id,nint data,ref bool handled)
@@ -95,8 +105,8 @@ public partial class MainWindow : Window
         finally{if(generation==liveGeneration)starting=false;}
     }
     public async Task Stop(){long generation=++liveGeneration;starting=false;SetEnabled(false);if(ready)await Execute(async()=>await engine.Send("stop"));if(generation==liveGeneration)Status.Text="Effects OFF · original picture restored";}
-    public async Task Compare(bool hold){if(ready&&enabled)await Execute(async()=>await engine.Send("compare",new{hold}));}
-    void SetEnabled(bool value){enabled=value;EnableButton.Content=value?"Effects on · F8":"Enable effects · F8";EffectState.Text=value?"Your picture, enhanced":"Ready when you are";EffectDescription.Text=value?"Live enhancement · compare with F8 or the floating controls.":"Effects are off. Original picture is visible.";}
+    public async Task Compare(bool hold){if(!closing&&ready&&enabled)await Execute(async()=>await engine.Send("compare",new{hold}));}
+    void SetEnabled(bool value){enabled=value;tray?.Update(value);EnableButton.Content=value?"Effects on · F8":"Enable effects · F8";EffectState.Text=value?"Your picture, enhanced":"Ready when you are";EffectDescription.Text=value?"Live enhancement · compare with F8 or the floating controls.":"Effects are off. Original picture is visible.";}
     void SettingsChanged(object sender,RoutedEventArgs e){if(!IsLoaded||loading)return;settingsTimer.Stop();settingsTimer.Start();}
     void RefreshTargets(){var previous=TargetPicker.SelectedItem as Target;TargetPicker.ItemsSource=monitorMode?Targets.Monitors():Targets.Windows();if(previous is not null)TargetPicker.SelectedItem=((IEnumerable<Target>)TargetPicker.ItemsSource).FirstOrDefault(t=>t.Handle==previous.Handle);if(monitorMode&&TargetPicker.SelectedItem is null&&TargetPicker.Items.Count>0)TargetPicker.SelectedIndex=0;
         WindowMode.BorderBrush=monitorMode?new SolidColorBrush(Color.FromRgb(52,67,91)):(Brush)FindResource("AccentBrush");MonitorMode.BorderBrush=monitorMode?(Brush)FindResource("AccentBrush"):new SolidColorBrush(Color.FromRgb(52,67,91));TargetHint.Text=monitorMode?"The entire selected display is enhanced. Protected or HDR content may be unavailable.":"Choose a window, then enable and return to it. Your controls stay available.";}
@@ -113,7 +123,7 @@ public partial class MainWindow : Window
     void OnSizeChanged(object sender,SizeChangedEventArgs e){ApplyLayout();if(LiveNav is null)return;bool compact=ActualWidth<760;foreach(var button in new[]{LiveNav,VideoNav,SystemNav})button.Padding=new Thickness(compact?0:18,11,compact?0:18,11);LiveNav.ToolTip="Live enhancement";VideoNav.ToolTip="Video Studio";SystemNav.ToolTip="System";}
     void ApplyLayout(){if(ControlGrid is null)return;bool wide=ActualWidth>=1100;Grid.SetColumn(ColorCard,wide?1:0);Grid.SetRow(ColorCard,wide?0:1);Grid.SetColumnSpan(NeuralCard,wide?1:2);Grid.SetColumnSpan(ColorCard,wide?1:2);NeuralCard.Margin=new Thickness(0,0,wide?8:0,16);ColorCard.Margin=new Thickness(wide?8:0,0,0,16);bool compact=ActualWidth<760;NavColumn.Width=new GridLength(compact?64:176);LiveNav.Content=compact?"◉":"◉   Live";VideoNav.Content=compact?"▷":"▷   Video Studio";SystemNav.Content=compact?"⚙":"⚙   System";VersionLabel.Visibility=compact?Visibility.Collapsed:Visibility.Visible;Descriptor.Visibility=ActualWidth<1060?Visibility.Collapsed:Visibility.Visible;PageScroller.Padding=new Thickness(compact?16:28,24,compact?16:28,24);}
     void PresetClick(object sender,RoutedEventArgs e){preset=(string)((Button)sender).Tag;loading=true;Strength.Value=Strength.IsEnabled?(preset=="Smooth"?10:preset=="Detail"?35:15):0;Stability.Value=preset=="Detail"?65:75;RefreshRate.SelectedIndex=preset=="Smooth"?1:2;Resolution.SelectedIndex=0;Clarity.Value=Vibrance.Value=Contrast.Value=Brightness.Value=Warmth.Value=Tone.Value=0;loading=false;SettingsChanged(this,e);Status.Text=preset+" preset selected";}
-    async void FloatingClick(object sender,RoutedEventArgs e){if(floating is not null){floating.Activate();return;}floating=new FloatingWindow(this);floating.Closed+=(_,__)=>floating=null;floating.Show();Targets.SetWindowDisplayAffinity(new WindowInteropHelper(floating).Handle,0x11);if(ready)await Execute(async()=>await engine.Send("exclude",new{hwnd=new WindowInteropHelper(floating).Handle.ToInt64()}));}
+    async void FloatingClick(object sender,RoutedEventArgs e){if(closing)return;if(floating is not null){floating.WindowState=WindowState.Normal;floating.Show();floating.Activate();return;}floating=new FloatingWindow(this);floating.Closed+=(_,__)=>floating=null;floating.Show();Targets.SetWindowDisplayAffinity(new WindowInteropHelper(floating).Handle,0x11);if(ready)await Execute(async()=>await engine.Send("exclude",new{hwnd=new WindowInteropHelper(floating).Handle.ToInt64()}));}
     void LoadBrand(){try{var data=JsonDocument.Parse(File.ReadAllText(Path.Combine(Paths.Root,"product.json"))).RootElement;Title=data.GetProperty("name").GetString();Brand.Text=Title;Descriptor.Text=data.GetProperty("descriptor").GetString()?.ToUpperInvariant();AboutText.Text=data.GetProperty("about").GetString();VersionLabel.Text="PREVIEW "+data.GetProperty("version").GetString()+"\nLOCAL PROCESSING";}catch{AboutText.Text="NeuralFlow is an independent experimental project, not affiliated with NVIDIA.";}}
     void SaveSettings(){if(!IsLoaded)return;try{Directory.CreateDirectory(Paths.Data);File.WriteAllText(Path.Combine(Paths.Data,"appearance.json"),JsonSerializer.Serialize(Settings(),new JsonSerializerOptions{WriteIndented=true}));}catch{}}
     void LoadSettings(){try{loading=true;var s=JsonDocument.Parse(File.ReadAllText(Path.Combine(Paths.Data,"appearance.json"))).RootElement;foreach(var pair in new[]{("strength",Strength),("stability",Stability),("clarity",Clarity),("saturation",Vibrance),("contrast",Contrast),("brightness",Brightness),("warmth",Warmth),("tone",Tone)})if(s.TryGetProperty(pair.Item1,out var value))pair.Item2.Value=value.GetDouble()*100;if(s.TryGetProperty("refresh",out var r))RefreshRate.SelectedIndex=Math.Clamp(r.GetInt32()-1,0,3);if(s.TryGetProperty("preset",out var p))preset=p.GetString()??"Balanced";}catch{}finally{loading=false;}}
