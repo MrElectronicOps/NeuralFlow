@@ -9,6 +9,34 @@ using System.Windows.Threading;
 namespace NeuralFlow;
 public partial class MainWindow
 {
+    async Task RunFloatingSoak(string folder)
+    {
+        Directory.CreateDirectory(folder);
+        var scene=new Window{Title="NeuralFlow isolated test scene",Width=480,Height=320,Background=Brushes.DarkSlateBlue,
+            Content=new TextBlock{Text="NeuralFlow\nFloating controls stability test",FontSize=28,Foreground=Brushes.White,Margin=new Thickness(30)}};
+        var events=new List<object>();
+        try{
+            scene.Show();await Task.Delay(300);ShowFloatingControls();
+            TargetPicker.ItemsSource=new[]{new Target("Isolated test scene",new System.Windows.Interop.WindowInteropHelper(scene).Handle.ToInt64(),"window")};TargetPicker.SelectedIndex=0;
+            loading=true;Strength.Value=Strength.IsEnabled?15:0;Clarity.Value=12;loading=false;
+            await Toggle();if(!enabled)throw new InvalidOperationException(Status.Text);
+            WindowState=WindowState.Minimized;
+            var panel=(StackPanel)((ScrollViewer)floating!.Content).Content;
+            var more=panel.Children.OfType<Expander>().Single();more.IsExpanded=true;
+            var sliders=((StackPanel)more.Content).Children.OfType<Slider>().ToArray();
+            for(int i=0;i<180;i++){
+                sliders[1].Value=i%35;sliders[2].Value=i%20;
+                if(i%30==0){await Compare(true);await Task.Delay(30);await Compare(false);}
+                if(i%40==0){RestoreMainWindow();WindowState=WindowState.Minimized;}
+                await Task.Delay(500);
+                if(!enabled||!ready)throw new InvalidOperationException("Live session stopped: "+Status.Text);
+                if(!floating.IsVisible||floating.WindowState==WindowState.Minimized)throw new InvalidOperationException("Floating controls disappeared.");
+                if(i%20==0){events.Add(new{step=i,private_bytes=System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64,status=Status.Text});File.WriteAllText(Path.Combine(folder,"progress.json"),JsonSerializer.Serialize(events));}
+            }
+            await Stop();File.WriteAllText(Path.Combine(folder,"passed.json"),JsonSerializer.Serialize(new{passed=true,seconds=90,updates=180,neural=Strength.Value>0,events}));
+        }catch(Exception error){File.WriteAllText(Path.Combine(folder,"failed.txt"),error.ToString());}
+        finally{await Stop();scene.Close();Close();}
+    }
     async Task RunWindowChecks(string folder)
     {
         Directory.CreateDirectory(folder);

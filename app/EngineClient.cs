@@ -26,7 +26,8 @@ public sealed class EngineClient : IDisposable
             try {
                 while(await process.StandardOutput.ReadLineAsync() is string line){
                     try {
-                        var root=JsonDocument.Parse(line).RootElement.Clone();
+                        using var document=JsonDocument.Parse(line);
+                        var root=document.RootElement.Clone();
                         if(root.TryGetProperty("id",out var id)&&pending.TryRemove(id.GetInt64(),out var waiter)) {
                             if(root.TryGetProperty("ok",out var ok)&&!ok.GetBoolean()) waiter.TrySetException(new InvalidOperationException(root.GetProperty("error").GetString()));
                             else waiter.TrySetResult(root.TryGetProperty("data",out var data)?data.Clone():root);
@@ -40,14 +41,24 @@ public sealed class EngineClient : IDisposable
         _ = Task.Run(async ()=>{try{while(await process.StandardError.ReadLineAsync() is string line)File.AppendAllText(Path.Combine(Paths.Data,"engine.log"),line+Environment.NewLine);}catch{};});
         await Send("status");
     }
-    public async Task<JsonElement> Send(string op,object? payload=null,int timeout=120000)
+    public async Task<JsonElement> Send(string op,object? payload=null,int timeout=15000)
     {
         if(process is null||process.HasExited)throw new IOException("Local engine is not running.");
         long id=Interlocked.Increment(ref nextId);var task=new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);pending[id]=task;
         var fields=payload is null?new Dictionary<string,object?>():JsonSerializer.Deserialize<Dictionary<string,object?>>(JsonSerializer.Serialize(payload))!;
         fields["id"]=id;fields["op"]=op;
-        await writeLock.WaitAsync();try{await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(fields));await process.StandardInput.FlushAsync();}finally{writeLock.Release();}
-        try{return await task.Task.WaitAsync(TimeSpan.FromMilliseconds(timeout));}finally{pending.TryRemove(id,out _);}
+        using var deadline=new CancellationTokenSource(timeout);
+        try{
+            await writeLock.WaitAsync(deadline.Token);
+            try{await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(fields).AsMemory(),deadline.Token);await process.StandardInput.FlushAsync(deadline.Token);}
+            finally{writeLock.Release();}
+            return await task.Task.WaitAsync(deadline.Token);
+        }catch(OperationCanceledException){
+            // A cancelled pipe write may be partial; never reuse that protocol stream.
+            try{if(process is not null&&!process.HasExited)process.Kill(true);}catch{}
+            throw new TimeoutException("The local engine stopped responding and was stopped with its overlay. Reopen NeuralFlow to reconnect.");
+        }
+        finally{pending.TryRemove(id,out _);}
     }
     public void Dispose(){if(process is null)return;try{process.StandardInput.WriteLine("{\"op\":\"shutdown\",\"id\":-1}");if(!process.WaitForExit(2000))process.Kill(true);}catch{}process.Dispose();process=null;}
 }

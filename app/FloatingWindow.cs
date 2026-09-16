@@ -13,6 +13,10 @@ public sealed class FloatingWindow : Window
         ResizeMode=ResizeMode.CanResizeWithGrip;Topmost=true;ShowInTaskbar=false;
         WindowStyle=WindowStyle.ToolWindow;Background=new SolidColorBrush(Color.FromRgb(15,23,34));
         Foreground=Brushes.White;FontFamily=new FontFamily("Segoe UI");FontSize=15;
+        SourceInitialized+=(_,__)=>{
+            var source=System.Windows.Interop.HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+            if(source?.CompositionTarget is not null)source.CompositionTarget.RenderMode=System.Windows.Interop.RenderMode.SoftwareOnly;
+        };
         var panel=new StackPanel{Margin=new Thickness(20)};
         Content=new ScrollViewer{Content=panel,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
         var heading=new TextBlock{Text="NEURALFLOW",FontSize=20,FontWeight=FontWeights.SemiBold,Foreground=Brushes.LightCyan};

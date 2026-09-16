@@ -18,6 +18,8 @@ public partial class MainWindow : Window
     bool f8Registered,f9Registered;
     bool starting;
     bool setupRunning;
+    bool settingsSending;
+    long settingsRevision;
     long liveGeneration;
     HwndSource? hotkeySource;
     string preset="Balanced",sourcePath="",outputPath="",diagnostics="";
@@ -47,7 +49,13 @@ public partial class MainWindow : Window
             if(!f8Registered&&e.Key==System.Windows.Input.Key.F8){e.Handled=true;await Toggle();}
             if(!f9Registered&&e.Key==System.Windows.Input.Key.F9){e.Handled=true;await Stop();}
         };
-        settingsTimer.Tick+=async(_,__)=>{settingsTimer.Stop();SaveSettings();if(ready&&enabled)await Execute(async()=>await engine.Send("settings",new{settings=Settings()}));};
+        settingsTimer.Tick+=async(_,__)=>{
+            settingsTimer.Stop();if(closing)return;
+            if(settingsSending){settingsTimer.Start();return;}
+            long revision=settingsRevision;settingsSending=true;
+            try{SaveSettings();if(ready&&enabled)await Execute(async()=>await engine.Send("settings",new{settings=Settings()}));}
+            finally{settingsSending=false;if(!closing&&revision!=settingsRevision)settingsTimer.Start();}
+        };
         heartbeat.Tick+=async(_,__)=>{
             if(playing&&!updatingSeek){updatingSeek=true;Seek.Value=EnhancedPlayer.Position.TotalSeconds;updatingSeek=false;
                 if(Math.Abs((OriginalPlayer.Position-EnhancedPlayer.Position).TotalSeconds)>.12)OriginalPlayer.Position=EnhancedPlayer.Position;
@@ -67,6 +75,8 @@ public partial class MainWindow : Window
             if(qa>=0&&args.Length>qa+1)await RunUiChecks(args[qa+1]);
             int windows=Array.IndexOf(args,"--window-checks");
             if(windows>=0&&args.Length>windows+1)await RunWindowChecks(args[windows+1]);
+            int soak=Array.IndexOf(args,"--floating-soak");
+            if(soak>=0&&args.Length>soak+1)await RunFloatingSoak(args[soak+1]);
             int playback=Array.IndexOf(args,"--playback-checks");
             if(playback>=0&&args.Length>playback+3)await RunPlaybackChecks(args[playback+1],args[playback+2],args[playback+3]);
             int control=Array.IndexOf(args,"--control-checks");
@@ -107,7 +117,7 @@ public partial class MainWindow : Window
     public async Task Stop(){long generation=++liveGeneration;starting=false;SetEnabled(false);if(ready)await Execute(async()=>await engine.Send("stop"));if(generation==liveGeneration)Status.Text="Effects OFF · original picture restored";}
     public async Task Compare(bool hold){if(!closing&&ready&&enabled)await Execute(async()=>await engine.Send("compare",new{hold}));}
     void SetEnabled(bool value){enabled=value;tray?.Update(value);EnableButton.Content=value?"Effects on · F8":"Enable effects · F8";EffectState.Text=value?"Your picture, enhanced":"Ready when you are";EffectDescription.Text=value?"Live enhancement · compare with F8 or the floating controls.":"Effects are off. Original picture is visible.";}
-    void SettingsChanged(object sender,RoutedEventArgs e){if(!IsLoaded||loading)return;settingsTimer.Stop();settingsTimer.Start();}
+    void SettingsChanged(object sender,RoutedEventArgs e){if(!IsLoaded||loading||closing)return;settingsRevision++;settingsTimer.Stop();settingsTimer.Start();}
     void RefreshTargets(){var previous=TargetPicker.SelectedItem as Target;TargetPicker.ItemsSource=monitorMode?Targets.Monitors():Targets.Windows();if(previous is not null)TargetPicker.SelectedItem=((IEnumerable<Target>)TargetPicker.ItemsSource).FirstOrDefault(t=>t.Handle==previous.Handle);if(monitorMode&&TargetPicker.SelectedItem is null&&TargetPicker.Items.Count>0)TargetPicker.SelectedIndex=0;
         WindowMode.BorderBrush=monitorMode?new SolidColorBrush(Color.FromRgb(52,67,91)):(Brush)FindResource("AccentBrush");MonitorMode.BorderBrush=monitorMode?(Brush)FindResource("AccentBrush"):new SolidColorBrush(Color.FromRgb(52,67,91));TargetHint.Text=monitorMode?"The entire selected display is enhanced. Protected or HDR content may be unavailable.":"Choose a window, then enable and return to it. Your controls stay available.";}
     async void TargetChanged(object sender,SelectionChangedEventArgs e){if(enabled||starting)await Stop();}
